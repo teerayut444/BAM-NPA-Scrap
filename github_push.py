@@ -34,7 +34,7 @@ def main():
         run_git_command(["init"])
         run_git_command(["branch", "-M", "main"])
         
-        repo_url = "https://github.com/Teerayut.N/BAM-NPA-Scrap.git"
+        repo_url = "https://github.com/teerayut444/BAM-NPA-Scrap.git"
         print(f"[Git] กำลังกำหนดค่า Remote ไปยัง: {repo_url}")
         run_git_command(["remote", "add", "origin", repo_url])
     

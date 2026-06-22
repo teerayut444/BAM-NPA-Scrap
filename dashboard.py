@@ -51,6 +51,9 @@ def load_properties_data():
         # Load excel file
         df = pd.read_excel(excel_file)
         
+        # Replace $undefined and undefined values with NaN
+        df = df.replace(["$undefined", "undefined"], np.nan)
+        
         # Clean coordinates
         df['ละติจูด'] = pd.to_numeric(df['ละติจูด'], errors='coerce')
         df['ลองจิจูด'] = pd.to_numeric(df['ลองจิจูด'], errors='coerce')
@@ -711,18 +714,9 @@ with tab3:
                 discount_badge = ""
                 if discount_percentage > 0:
                     discount_badge = f'<span style="background-color: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 10px;">ลดพิเศษ {discount_percentage}%</span>'
-                    price_block = f"""
-                    <div style="margin-top: 8px;">
-                        <span style="color: #10b981; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span>
-                        <span style="text-decoration: line-through; color: #9ca3af; font-size: 0.85rem; margin-left: 8px;">{original_price_display_str}</span>
-                    </div>
-                    """
+                    price_block = f'<div style="margin-top: 8px;"><span style="color: #10b981; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span><span style="text-decoration: line-through; color: #9ca3af; font-size: 0.85rem; margin-left: 8px;">{original_price_display_str}</span></div>'
                 else:
-                    price_block = f"""
-                    <div style="margin-top: 8px;">
-                        <span style="color: #6366f1; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span>
-                    </div>
-                    """
+                    price_block = f'<div style="margin-top: 8px;"><span style="color: #6366f1; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span></div>'
                 
                 # Details string (land and building)
                 prop_details_list = []
@@ -750,26 +744,26 @@ with tab3:
                 details_line = " | ".join(prop_details_list)
                 
                 # Card HTML Content
-                card_html = f"""
-                <div style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;">
-                    {image_tag}
-                    <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div>
-                            <div>
-                                <span style="background-color: #1f2937; color: #06b6d4; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">{row.get("ประเภททรัพย์", "")}</span>
-                                <span style="color: {card_text_color}; font-size: 0.7rem; float: right; font-weight: 500;">รหัส: {row.get("รหัสทรัพย์", "")}</span>
-                            </div>
-                            <h4 style="margin: 10px 0 5px 0; font-size: 0.95rem; color: {card_title_color}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4; height: 2.8em;">{row.get("ชื่อประกาศ", "")}</h4>
-                            <p style="color: {card_text_color}; font-size: 0.78rem; margin-bottom: 6px;"><i class="fa fa-map-marker" style="margin-right: 5px; color: #6366f1;"></i>{row.get("จังหวัด", "")} &raquo; {row.get("อำเภอ", "")}</p>
-                            <p style="color: {card_text_color}; font-size: 0.78rem; margin-bottom: 10px; font-weight: 500;">{details_line}</p>
-                        </div>
-                        <div>
-                            {price_block}
-                            <div style="margin-top: 4px;">{discount_badge}</div>
-                        </div>
-                    </div>
-                </div>
-                """
+                card_html = (
+                    f'<div style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;">'
+                    f'{image_tag}'
+                    f'<div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">'
+                    f'<div>'
+                    f'<div>'
+                    f'<span style="background-color: #1f2937; color: #06b6d4; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">{row.get("ประเภททรัพย์", "")}</span>'
+                    f'<span style="color: {card_text_color}; font-size: 0.7rem; float: right; font-weight: 500;">รหัส: {row.get("รหัสทรัพย์", "")}</span>'
+                    f'</div>'
+                    f'<h4 style="margin: 10px 0 5px 0; font-size: 0.95rem; color: {card_title_color}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4; height: 2.8em;">{row.get("ชื่อประกาศ", "")}</h4>'
+                    f'<p style="color: {card_text_color}; font-size: 0.78rem; margin-bottom: 6px;"><i class="fa fa-map-marker" style="margin-right: 5px; color: #6366f1;"></i>{row.get("จังหวัด", "")} &raquo; {row.get("อำเภอ", "")}</p>'
+                    f'<p style="color: {card_text_color}; font-size: 0.78rem; margin-bottom: 10px; font-weight: 500;">{details_line}</p>'
+                    f'</div>'
+                    f'<div>'
+                    f'{price_block}'
+                    f'<div style="margin-top: 4px;">{discount_badge}</div>'
+                    f'</div>'
+                    f'</div>'
+                    f'</div>'
+                )
                 st.markdown(card_html, unsafe_allow_html=True)
                 
                 # Render native button below card for redirect

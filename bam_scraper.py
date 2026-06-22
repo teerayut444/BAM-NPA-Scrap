@@ -32,7 +32,7 @@ def get_clean_area(area_dict, key):
     if not area_dict or not isinstance(area_dict, dict):
         return ""
     val = area_dict.get(key)
-    if val is None or str(val).lower() == "undefined":
+    if val is None or "undefined" in str(val).lower():
         return ""
     return val
 
@@ -186,16 +186,16 @@ def scrape_page(page_num: int) -> tuple[list[dict], int, int]:
         sqWa = get_clean_area(land_area_dict, "sqWa")
         
         building_area = prop.get("buildingArea")
-        building_area = "" if building_area is None or str(building_area).lower() == "undefined" else building_area
+        building_area = "" if building_area is None or "undefined" in str(building_area).lower() else building_area
         
         bedrooms = prop.get("bedrooms")
-        bedrooms = "" if bedrooms is None or str(bedrooms).lower() == "undefined" else bedrooms
+        bedrooms = "" if bedrooms is None or "undefined" in str(bedrooms).lower() else bedrooms
         
         bathrooms = prop.get("bathrooms")
-        bathrooms = "" if bathrooms is None or str(bathrooms).lower() == "undefined" else bathrooms
+        bathrooms = "" if bathrooms is None or "undefined" in str(bathrooms).lower() else bathrooms
         
         parking = prop.get("parking")
-        parking = "" if parking is None or str(parking).lower() == "undefined" else parking
+        parking = "" if parking is None or "undefined" in str(parking).lower() else parking
         
         prop_code = prop.get("propertyCode", "")
         price = prop.get("price")

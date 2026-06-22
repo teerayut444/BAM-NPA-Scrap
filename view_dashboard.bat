@@ -14,8 +14,8 @@ if not exist ".venv\Scripts\python.exe" (
     exit /b 1
 )
 
-:: Run Streamlit via virtualenv python
-".venv\Scripts\python.exe" -m streamlit run dashboard.py
+:: Run Streamlit via virtualenv python (port 8000 for local use)
+".venv\Scripts\python.exe" -m streamlit run dashboard.py --server.port 8000
 
 echo.
 echo ===================================================

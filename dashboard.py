@@ -3,9 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-import subprocess
 import sys
-import os
 import re
 import json
 from pathlib import Path
@@ -35,9 +33,14 @@ st.set_page_config(
 
 # Helper function to find python inside .venv
 def get_python_executable():
+    # Windows
     venv_python = Path(".venv") / "Scripts" / "python.exe"
     if venv_python.exists():
         return str(venv_python.resolve())
+    # Linux / Streamlit Cloud
+    venv_python_linux = Path(".venv") / "bin" / "python"
+    if venv_python_linux.exists():
+        return str(venv_python_linux.resolve())
     return sys.executable
 
 # Cached function to load data from excel
@@ -359,14 +362,23 @@ with main_col:
     
 with theme_col:
     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
-    # Render segmented control for sun/moon theme selector
-    selected_theme_icon = st.segmented_control(
-        "เลือกธีม",
-        options=["☀️", "🌙"],
-        default=theme_choice_icon,
-        key="theme_select_widget",
-        label_visibility="collapsed"
-    )
+    # Render theme selector (use pills for broad Streamlit version compatibility)
+    try:
+        selected_theme_icon = st.segmented_control(
+            "เลือกธีม",
+            options=["☀️", "🌙"],
+            default=theme_choice_icon,
+            key="theme_select_widget",
+            label_visibility="collapsed"
+        )
+    except AttributeError:
+        selected_theme_icon = st.pills(
+            "เลือกธีม",
+            options=["☀️", "🌙"],
+            default=theme_choice_icon,
+            key="theme_select_widget",
+            label_visibility="collapsed"
+        )
     # Update session state if changed, preventing deselection
     if selected_theme_icon and selected_theme_icon != theme_choice_icon:
         st.session_state["theme_select"] = selected_theme_icon

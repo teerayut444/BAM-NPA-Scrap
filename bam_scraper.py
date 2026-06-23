@@ -8,6 +8,8 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
+import openpyxl
+from openpyxl.utils import get_column_letter
 
 EXCEL_FILE = Path("BAM NPA.xlsx")
 
@@ -257,9 +259,6 @@ def save_data(existing_listings, new_listings):
         print("ไม่มีข้อมูลที่จะบันทึก")
         return
         
-    df = pd.DataFrame(all_listings)
-    
-    # Reorder columns to ensure exact consistency
     cols_order = [
         "ID", "ชื่อประกาศ", "รหัสทรัพย์", "ประเภททรัพย์", "ราคา", "ราคาตั้งต้น",
         "ทำเล/ที่ตั้ง", "ตำบล", "อำเภอ", "จังหวัด", "ละติจูด", "ลองจิจูด",
@@ -267,11 +266,44 @@ def save_data(existing_listings, new_listings):
         "ห้องนอน", "ห้องน้ำ", "ที่จอดรถ", "วันที่ลดราคาพิเศษถึง", "รูปภาพ", "แคมเปญ", "ลิงก์"
     ]
     
-    # Fill missing columns with None to prevent errors
+    # Try to append using openpyxl to preserve Excel formatting and tables
+    try:
+        if EXCEL_FILE.exists() and new_listings:
+            wb = openpyxl.load_workbook(EXCEL_FILE)
+            ws = wb.active
+            
+            # Map column headers to index
+            header_map = {}
+            for col_idx in range(1, ws.max_column + 1):
+                header_val = ws.cell(row=1, column=col_idx).value
+                if header_val in cols_order:
+                    header_map[header_val] = col_idx
+            
+            # Check if all columns exist
+            if all(col in header_map for col in cols_order):
+                current_row = ws.max_row + 1
+                for item in new_listings:
+                    for col_name, col_idx in header_map.items():
+                        ws.cell(row=current_row, column=col_idx, value=item.get(col_name))
+                    current_row += 1
+                
+                # Expand table references if any
+                for table_name, table in list(ws.tables.items()):
+                    col_letter = get_column_letter(ws.max_column)
+                    table.ref = f"A1:{col_letter}{ws.max_row}"
+                
+                wb.save(EXCEL_FILE)
+                print(f"\n  [Save] บันทึกข้อมูลแบบรักษาฟอร์แมตสำเร็จ! เพิ่มเติม {len(new_listings)} รายการ (รวมทั้งสิ้น {ws.max_row - 1} รายการ)")
+                return
+    except Exception as e:
+        print(f"\n  [Warning] ไม่สามารถเขียนข้อมูลแบบ Append รักษาสไตล์ได้: {e}")
+        print("  กำลังบันทึกด้วยวิธีปกติ (เขียนทับใหม่)...")
+
+    # Fallback to standard pandas write
+    df = pd.DataFrame(all_listings)
     for col in cols_order:
         if col not in df.columns:
             df[col] = None
-            
     df = df[cols_order]
     
     try:

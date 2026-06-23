@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import sys
 import re
 import json
+import math
 from pathlib import Path
 
 # Helper function to read total count of properties on web
@@ -20,6 +21,38 @@ def get_web_total_count():
             pass
     return 16541
 
+
+# Haversine distance calculation (km)
+def haversine_distance(lat1, lon1, lat2, lon2):
+    R = 6371  # Earth radius in km
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+def find_nearby_properties(input_lat, input_lon, df_bam, radius_km, match_type=None, match_name=None):
+    """Find BAM properties within radius_km of the given coordinates."""
+    results = []
+    for _, row in df_bam.iterrows():
+        bam_lat = row.get('ละติจูด')
+        bam_lon = row.get('ลองจิจูด')
+        if pd.isna(bam_lat) or pd.isna(bam_lon):
+            continue
+        # Filter by property type if specified
+        if match_type and str(match_type).strip() != '' and str(match_type).lower() != 'nan':
+            if str(row.get('ประเภททรัพย์', '')).strip() != str(match_type).strip():
+                continue
+        # Filter by name keyword if specified
+        if match_name and str(match_name).strip() != '' and str(match_name).lower() != 'nan':
+            if str(match_name).lower() not in str(row.get('ชื่อประกาศ', '')).lower():
+                continue
+        dist = haversine_distance(input_lat, input_lon, float(bam_lat), float(bam_lon))
+        if dist <= radius_km:
+            result_row = row.to_dict()
+            result_row['ระยะทาง (กม.)'] = round(dist, 2)
+            results.append(result_row)
+    return pd.DataFrame(results)
 
 # Configure Streamlit page layout
 st.set_page_config(
@@ -443,13 +476,20 @@ total_scraped_local = len(df_raw) if df_raw is not None else 0
 total_web_count = get_web_total_count()
 scraped_percentage = (total_scraped_local / total_web_count * 100) if total_web_count > 0 else 0.0
 
+# Calculate min/max prices
+valid_prices_filtered = df_filtered['ราคา'].dropna()
+min_price = valid_prices_filtered.min() if not valid_prices_filtered.empty else 0
+max_price = valid_prices_filtered.max() if not valid_prices_filtered.empty else 0
+min_price_str = f"{min_price:,.0f}" if min_price > 0 else "0"
+max_price_str = f"{max_price:,.0f}" if max_price > 0 else "0"
+
 # Format variables
 total_value_str = f"{total_value:,.2f} ล้าน" if total_value > 0 else "0.00"
 avg_price_str = f"{avg_price:,.2f} ล้าน" if avg_price > 0 else "0.00"
 avg_discount_str = f"{avg_discount:.1f}%" if avg_discount > 0 else "0.0%"
 
-# KPI Display Columns
-kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
+# KPI Display Columns (6 boxes)
+kpi_col1, kpi_col2, kpi_col3, kpi_col4, kpi_col5, kpi_col6 = st.columns(6)
 
 with kpi_col1:
     st.markdown(f"""
@@ -484,6 +524,24 @@ with kpi_col3:
 with kpi_col4:
     st.markdown(f"""
     <div class="metric-card">
+        <div class="metric-title"><i class="fa fa-arrow-down" style="color: #22c55e;"></i> ราคาต่ำสุด (Min)</div>
+        <div class="metric-value">฿{min_price_str}</div>
+        <div class="metric-sub" style="color: #22c55e;">บาท</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with kpi_col5:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa fa-arrow-up" style="color: #f59e0b;"></i> ราคาสูงสุด (Max)</div>
+        <div class="metric-value">฿{max_price_str}</div>
+        <div class="metric-sub" style="color: #f59e0b;">บาท</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with kpi_col6:
+    st.markdown(f"""
+    <div class="metric-card">
         <div class="metric-title"><i class="fa fa-percent" style="color: #ef4444;"></i> ส่วนลดเฉลี่ย</div>
         <div class="metric-value">{avg_discount_str}</div>
         <div class="metric-sub" style="color: #ef4444;">มีส่วนลด {len(discounted_items)} รายการ</div>
@@ -493,7 +551,7 @@ with kpi_col4:
 st.markdown("<br/>", unsafe_allow_html=True)
 
 # ----------------- TABS CREATION -----------------
-tab1, tab2, tab3 = st.tabs(["🗺️ แผนที่ทรัพย์สิน (Interactive Map)", "📈 สถิติ & วิเคราะห์ (Analytics)", "📋 รายการทรัพย์สิน (Property Listing)"])
+tab1, tab2, tab3, tab4 = st.tabs(["🗺️ แผนที่ทรัพย์สิน (Interactive Map)", "📈 สถิติ & วิเคราะห์ (Analytics)", "📋 รายการทรัพย์สิน (Property Listing)", "🔍 เปรียบเทียบทรัพย์ (Comparison)"])
 
 # ----- TAB 1: INTERACTIVE MAP -----
 with tab1:
@@ -784,3 +842,202 @@ with tab3:
                     st.link_button("🌐 รายละเอียดเว็บ BAM", url=link_url, use_container_width=True)
                 
                 st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
+
+# ----- TAB 4: PROPERTY COMPARISON -----
+with tab4:
+    st.markdown("### 🔍 เปรียบเทียบทรัพย์สิน (Property Comparison)")
+    st.markdown(f'<p style="color: {card_text_color};">นำเข้าทรัพย์สินที่ต้องการเปรียบเทียบ จากนั้นค้นหาทรัพย์ BAM NPA ที่อยู่ใกล้เคียงตามเงื่อนไขที่กำหนด</p>', unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ===== SECTION 1: Import Properties =====
+    st.markdown(f'<h4 style="color: {card_title_color};"><i class="fa fa-upload" style="color: #6366f1;"></i> ส่วนที่ 1: นำเข้าทรัพย์สินสำหรับเปรียบเทียบ</h4>', unsafe_allow_html=True)
+
+    input_method = st.radio(
+        "เลือกวิธีนำเข้าข้อมูล",
+        ["📝 กรอกข้อมูลด้วยมือ", "📂 อัปโหลดไฟล์ Excel/CSV"],
+        horizontal=True
+    )
+
+    if "comparison_input_df" not in st.session_state:
+        st.session_state["comparison_input_df"] = pd.DataFrame(columns=["ชื่อทรัพย์", "ประเภททรัพย์", "ละติจูด", "ลองจิจูด", "ราคา"])
+
+    if input_method == "📝 กรอกข้อมูลด้วยมือ":
+        with st.expander("➕ เพิ่มทรัพย์สินใหม่", expanded=True):
+            inp_col1, inp_col2 = st.columns(2)
+            with inp_col1:
+                inp_name = st.text_input("ชื่อทรัพย์ / ชื่อโครงการ", key="inp_name")
+                inp_type = st.selectbox(
+                    "ประเภททรัพย์",
+                    options=["บ้านเดี่ยว", "ทาวน์เฮ้าส์", "คอนโดมิเนียม", "อาคารพาณิชย์", "ที่ดินเปล่า", "โรงงาน", "ที่เกษตร", "อพาร์ทเม้นท์", "อาคารสำนักงาน", "อื่นๆ"],
+                    key="inp_type"
+                )
+                inp_price = st.number_input("ราคา (บาท)", min_value=0, value=0, step=100000, key="inp_price")
+            with inp_col2:
+                inp_lat = st.number_input("ละติจูด (Latitude)", value=13.7563, format="%.6f", key="inp_lat")
+                inp_lng = st.number_input("ลองจิจูด (Longitude)", value=100.5018, format="%.6f", key="inp_lng")
+
+            if st.button("➕ เพิ่มทรัพย์", type="primary"):
+                if inp_name.strip():
+                    new_row = pd.DataFrame([{
+                        "ชื่อทรัพย์": inp_name,
+                        "ประเภททรัพย์": inp_type,
+                        "ละติจูด": inp_lat,
+                        "ลองจิจูด": inp_lng,
+                        "ราคา": inp_price
+                    }])
+                    st.session_state["comparison_input_df"] = pd.concat(
+                        [st.session_state["comparison_input_df"], new_row],
+                        ignore_index=True
+                    )
+                    st.success(f"เพิ่ม '{inp_name}' เรียบร้อยแล้ว!")
+                    st.rerun()
+                else:
+                    st.warning("กรุณาระบุชื่อทรัพย์")
+
+    else:  # Upload file
+        uploaded_file = st.file_uploader(
+            "อัปโหลดไฟล์ Excel (.xlsx) หรือ CSV (.csv)",
+            type=["xlsx", "csv"],
+            help="ไฟล์ต้องมีคอลัมน์: ชื่อทรัพย์, ประเภททรัพย์, ละติจูด, ลองจิจูด, ราคา"
+        )
+        if uploaded_file is not None:
+            try:
+                if uploaded_file.name.endswith(".csv"):
+                    uploaded_df = pd.read_csv(uploaded_file)
+                else:
+                    uploaded_df = pd.read_excel(uploaded_file)
+                required_cols = ["ชื่อทรัพย์", "ละติจูด", "ลองจิจูด"]
+                missing_cols = [c for c in required_cols if c not in uploaded_df.columns]
+                if missing_cols:
+                    st.error(f"ไฟล์ขาดคอลัมน์ที่จำเป็น: {', '.join(missing_cols)}")
+                else:
+                    for col in ["ประเภททรัพย์", "ราคา"]:
+                        if col not in uploaded_df.columns:
+                            uploaded_df[col] = ""
+                    st.session_state["comparison_input_df"] = uploaded_df[["ชื่อทรัพย์", "ประเภททรัพย์", "ละติจูด", "ลองจิจูด", "ราคา"]].copy()
+                    st.success(f"นำเข้าข้อมูลสำเร็จ! {len(uploaded_df)} รายการ")
+            except Exception as e:
+                st.error(f"เกิดข้อผิดพลาดในการอ่านไฟล์: {e}")
+
+    # Display current input table
+    input_df = st.session_state["comparison_input_df"]
+    if not input_df.empty:
+        st.markdown(f'<h5 style="color: {card_title_color}; margin-top: 15px;">📋 ทรัพย์สินที่นำเข้า ({len(input_df)} รายการ)</h5>', unsafe_allow_html=True)
+        st.dataframe(
+            input_df,
+            use_container_width=True,
+            column_config={
+                "ราคา": st.column_config.NumberColumn("ราคา (บาท)", format="%d"),
+                "ละติจูด": st.column_config.NumberColumn(format="%.6f"),
+                "ลองจิจูด": st.column_config.NumberColumn(format="%.6f")
+            }
+        )
+        if st.button("🗑️ ล้างข้อมูลทั้งหมด", type="secondary"):
+            st.session_state["comparison_input_df"] = pd.DataFrame(columns=["ชื่อทรัพย์", "ประเภททรัพย์", "ละติจูด", "ลองจิจูด", "ราคา"])
+            st.rerun()
+    else:
+        st.info("ยังไม่มีข้อมูลทรัพย์สินที่นำเข้า กรุณาเพิ่มข้อมูลด้านบน")
+
+    st.markdown("---")
+
+    # ===== SECTION 2: Search Conditions =====
+    st.markdown(f'<h4 style="color: {card_title_color};"><i class="fa fa-search" style="color: #06b6d4;"></i> ส่วนที่ 2: เงื่อนไขค้นหาทรัพย์ BAM ใกล้เคียง</h4>', unsafe_allow_html=True)
+
+    cond_col1, cond_col2, cond_col3 = st.columns(3)
+    with cond_col1:
+        search_radius = st.slider("ระยะทางสูงสุด (กม.)", min_value=0.5, max_value=50.0, value=1.0, step=0.5, key="search_radius")
+    with cond_col2:
+        filter_by_type = st.checkbox("กรองตามประเภททรัพย์ (ให้ตรงกับทรัพย์ที่นำเข้า)", value=True, key="filter_type_check")
+    with cond_col3:
+        filter_name_keyword = st.text_input("ค้นหาชื่อโครงการ (keyword)", value="", key="filter_name_kw", help="กรอกคำค้น เช่น ชื่อหมู่บ้าน/คอนโด เพื่อจำกัดผลลัพธ์")
+
+    # ===== SECTION 3: Run Comparison =====
+    if st.button("🔍 ค้นหาทรัพย์ BAM ที่ใกล้เคียง", type="primary", disabled=input_df.empty):
+        if input_df.empty:
+            st.warning("กรุณานำเข้าทรัพย์สินก่อนกดค้นหา")
+        else:
+            all_results = []
+            with st.spinner("กำลังค้นหาทรัพย์ใกล้เคียง..."):
+                for idx, inp_row in input_df.iterrows():
+                    inp_lat_val = pd.to_numeric(inp_row.get("ละติจูด"), errors='coerce')
+                    inp_lon_val = pd.to_numeric(inp_row.get("ลองจิจูด"), errors='coerce')
+                    if pd.isna(inp_lat_val) or pd.isna(inp_lon_val):
+                        continue
+                    m_type = inp_row.get("ประเภททรัพย์", "") if filter_by_type else None
+                    m_name = filter_name_keyword if filter_name_keyword.strip() else None
+                    nearby = find_nearby_properties(
+                        inp_lat_val, inp_lon_val, df_raw, search_radius,
+                        match_type=m_type, match_name=m_name
+                    )
+                    if not nearby.empty:
+                        nearby['ทรัพย์อ้างอิง'] = inp_row.get("ชื่อทรัพย์", f"ทรัพย์ #{idx+1}")
+                        inp_price_val = pd.to_numeric(inp_row.get("ราคา", 0), errors='coerce') or 0
+                        if inp_price_val > 0:
+                            nearby['ผลต่างราคา (บาท)'] = nearby['ราคา'].apply(lambda x: x - inp_price_val if pd.notnull(x) else None)
+                            nearby['ผลต่างราคา (%)'] = nearby['ราคา'].apply(lambda x: round((x - inp_price_val) / inp_price_val * 100, 1) if pd.notnull(x) and inp_price_val > 0 else None)
+                        all_results.append(nearby)
+
+            if all_results:
+                result_df = pd.concat(all_results, ignore_index=True)
+                st.session_state["comparison_results"] = result_df
+            else:
+                st.session_state["comparison_results"] = pd.DataFrame()
+                st.warning("ไม่พบทรัพย์ BAM NPA ที่ตรงตามเงื่อนไข ลองเพิ่มระยะทางหรือลดเงื่อนไขการกรอง")
+
+    # ===== SECTION 4: Display Results =====
+    if "comparison_results" in st.session_state and not st.session_state["comparison_results"].empty:
+        result_df = st.session_state["comparison_results"]
+        st.markdown("---")
+        st.markdown(f'<h4 style="color: {card_title_color};"><i class="fa fa-list-check" style="color: #10b981;"></i> ผลการเปรียบเทียบ (พบ {len(result_df)} รายการ)</h4>', unsafe_allow_html=True)
+
+        # Display columns
+        display_cols = ["ทรัพย์อ้างอิง", "รหัสทรัพย์", "ชื่อประกาศ", "ประเภททรัพย์", "ราคา", "จังหวัด", "อำเภอ", "ระยะทาง (กม.)"]
+        if "ผลต่างราคา (บาท)" in result_df.columns:
+            display_cols += ["ผลต่างราคา (บาท)", "ผลต่างราคา (%)"]
+        available_cols = [c for c in display_cols if c in result_df.columns]
+
+        col_config = {
+            "ราคา": st.column_config.NumberColumn("ราคาขาย (บาท)", format="%d"),
+            "ระยะทาง (กม.)": st.column_config.NumberColumn("ระยะทาง (กม.)", format="%.2f"),
+        }
+        if "ผลต่างราคา (บาท)" in available_cols:
+            col_config["ผลต่างราคา (บาท)"] = st.column_config.NumberColumn(format="%d")
+        if "ผลต่างราคา (%)" in available_cols:
+            col_config["ผลต่างราคา (%)"] = st.column_config.NumberColumn(format="%.1f%%")
+
+        st.dataframe(result_df[available_cols].sort_values("ระยะทาง (กม.)"), use_container_width=True, column_config=col_config)
+
+        # Map visualization
+        st.markdown(f'<h5 style="color: {card_title_color}; margin-top: 20px;">🗺️ แผนที่เปรียบเทียบตำแหน่ง</h5>', unsafe_allow_html=True)
+        st.caption("🔴 จุดสีแดง = ทรัพย์ที่นำเข้า | 🔵 จุดสีน้ำเงิน = ทรัพย์ BAM ที่พบ")
+
+        # Prepare map data
+        map_points = []
+        for _, inp_row in input_df.iterrows():
+            lat_v = pd.to_numeric(inp_row.get("ละติจูด"), errors='coerce')
+            lon_v = pd.to_numeric(inp_row.get("ลองจิจูด"), errors='coerce')
+            if pd.notna(lat_v) and pd.notna(lon_v):
+                map_points.append({"ละติจูด": lat_v, "ลองจิจูด": lon_v, "ชื่อ": inp_row.get("ชื่อทรัพย์", ""), "ประเภท": "ทรัพย์ที่นำเข้า", "ราคา": inp_row.get("ราคา", 0)})
+
+        bam_map_data = result_df[result_df['ละติจูด'].notna() & result_df['ลองจิจูด'].notna()].copy()
+        for _, bam_row in bam_map_data.iterrows():
+            map_points.append({"ละติจูด": bam_row["ละติจูด"], "ลองจิจูด": bam_row["ลองจิจูด"], "ชื่อ": bam_row.get("ชื่อประกาศ", ""), "ประเภท": "ทรัพย์ BAM NPA", "ราคา": bam_row.get("ราคา", 0)})
+
+        if map_points:
+            map_df = pd.DataFrame(map_points)
+            fig_compare = px.scatter_mapbox(
+                map_df, lat="ละติจูด", lon="ลองจิจูด", color="ประเภท",
+                hover_name="ชื่อ",
+                hover_data={"ราคา": ":,.0f", "ละติจูด": False, "ลองจิจูด": False, "ประเภท": False},
+                zoom=12, height=500,
+                color_discrete_map={"ทรัพย์ที่นำเข้า": "#ef4444", "ทรัพย์ BAM NPA": "#3b82f6"},
+                template=plotly_template
+            )
+            fig_compare.update_layout(
+                mapbox_style=mapbox_style,
+                margin={"r": 0, "t": 0, "l": 0, "b": 0},
+                paper_bgcolor="rgba(0,0,0,0)",
+                legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01, bgcolor=map_legend_bg, bordercolor=map_legend_border, borderwidth=1, font=dict(color=map_legend_text, size=12))
+            )
+            st.plotly_chart(fig_compare, use_container_width=True, theme=None)

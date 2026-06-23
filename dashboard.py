@@ -566,7 +566,7 @@ with tab1:
             lat="ละติจูด",
             lon="ลองจิจูด",
             color="ประเภททรัพย์",
-            size=map_data["ราคา"].clip(lower=100000), # Clip very small/free for circle visibility
+            size=map_data["ราคา"].fillna(100000).clip(lower=100000), # Clip very small/free for circle visibility
             hover_name="ชื่อประกาศ",
             hover_data={
                 "รหัสทรัพย์": True,

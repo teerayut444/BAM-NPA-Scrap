@@ -199,6 +199,8 @@ def scrape_page(page_num: int) -> tuple[list[dict], int, int]:
         
         prop_code = prop.get("propertyCode", "")
         price = prop.get("price")
+        if price is None or str(price).strip() == "" or str(price).lower() == "nan" or str(price).lower() == "undefined" or price == 0:
+            price = "ไม่ทราบราคา"
         original_price = prop.get("originalPrice")
         valid_to_date = prop.get("validToDate", "")
         image_url = prop.get("imageUrl", "")

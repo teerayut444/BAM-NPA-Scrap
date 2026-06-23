@@ -338,6 +338,36 @@ with st.sidebar:
             font-size: 1.1rem;
         }}
         
+        /* Fix label visibility for all widgets */
+        label, .stTextInput label, .stNumberInput label, 
+        .stSelectbox label, .stMultiselect label, .stSlider label,
+        .stRadio label, .stCheckbox label, .stFileUploader label {{
+            color: {card_title_color} !important;
+        }}
+        
+        /* Radio button option text */
+        .stRadio div[role="radiogroup"] label span,
+        .stRadio div[role="radiogroup"] label p {{
+            color: {card_title_color} !important;
+        }}
+        
+        /* Checkbox text */
+        .stCheckbox label span,
+        .stCheckbox label p {{
+            color: {card_title_color} !important;
+        }}
+        
+        /* Expander header text */
+        .streamlit-expanderHeader, .streamlit-expanderHeader p,
+        details summary span, details summary p {{
+            color: {card_title_color} !important;
+        }}
+        
+        /* Caption text */
+        .stCaption, .stCaption p {{
+            color: {text_title} !important;
+        }}
+        
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
     </style>

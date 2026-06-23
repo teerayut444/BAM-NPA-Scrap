@@ -142,229 +142,230 @@ with st.sidebar:
     map_legend_text = "#1f2937"
     plotly_template = "plotly_white"
     
-    body_style = """
-    body, .stApp {
-        background-color: #f9fafb !important;
-        color: #1f2937 !important;
-    }
-    
-    h1, h2, h3, h4, h5, h6 {
-        color: #1f2937 !important;
-    }
-    
-    section[data-testid="stSidebar"] {
-        background-color: #f3f4f6 !important;
-        border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
-    }
-    
-    /* Top Header Bar */
-    header[data-testid="stHeader"] {
-        background-color: #f9fafb !important;
-        background: #f9fafb !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-    }
-    div[data-testid="stDecoration"] {
-        background: transparent !important;
-    }
-    
-    /* Sidebar Text Color overrides */
-    section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {
-        color: #1f2937 !important;
-    }
-    section[data-testid="stSidebar"] i {
-        color: #6366f1 !important;
-    }
-    
-    /* Light theme overrides for Streamlit BaseWeb components */
-    div[data-baseweb="select"] {
-        background-color: transparent !important;
-    }
-    div[data-baseweb="select"] > div {
-        background-color: #ffffff !important;
-        border: 1px solid rgba(0, 0, 0, 0.15) !important;
-        border-radius: 4px;
-    }
-    div[data-baseweb="select"] div {
-        background-color: transparent !important;
-        color: #1f2937 !important;
-    }
-    div[data-baseweb="select"] input {
-        color: #1f2937 !important;
-    }
-    div[data-baseweb="select"] span {
-        color: #1f2937 !important;
-    }
-    
-    /* Dropdown popups */
-    div[role="listbox"], ul[role="listbox"], div[data-baseweb="menu"] {
-        background-color: #ffffff !important;
-        border: 1px solid rgba(0, 0, 0, 0.12) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-    }
-    div[role="listbox"] div, ul[role="listbox"] li, div[data-baseweb="menu"] div {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
-    }
-    div[role="option"]:hover, li[role="option"]:hover, div[data-baseweb="menu"] div:hover {
-        background-color: #f3f4f6 !important;
-        color: #1f2937 !important;
-    }
-    
-    /* Multiselect selected items (tags) */
-    span[data-baseweb="tag"] {
-        background-color: #e5e7eb !important;
-        border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    }
-    span[data-baseweb="tag"] div {
-        background-color: transparent !important;
-    }
-    span[data-baseweb="tag"] span {
-        color: #1f2937 !important;
-        background-color: transparent !important;
-    }
-    
-    /* Input fields (Text & Number Inputs) and Buttons */
-    div[data-testid="stTextInput"] input, 
-    div[data-testid="stNumberInput"] input,
-    input[type="text"], 
-    input[type="number"] {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
-        border: 1px solid rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    div[data-testid="stNumberInput"] button {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
-        border: 1px solid rgba(0, 0, 0, 0.15) !important;
-    }
-    div[data-testid="stNumberInput"] button:hover {
-        background-color: #f3f4f6 !important;
-    }
-    
-    /* Slider */
-    div[data-testid="stSlider"] * {
-        color: #1f2937 !important;
-    }
-    
-    /* Tabs styling */
-    button[data-baseweb="tab"] p {
-        color: #4b5563 !important;
-    }
-    button[data-baseweb="tab"][aria-selected="true"] {
-        border-bottom-color: #6366f1 !important;
-    }
-    button[data-baseweb="tab"][aria-selected="true"] p {
-        color: #6366f1 !important;
-    }
-    """
-    
-    st.markdown(f"""
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap');
-        
-        html, body, [data-testid="stSidebar"], .stApp {{
-            font-family: 'Outfit', 'Sarabun', sans-serif;
-        }}
-        
-        {body_style}
-        
-        /* Metrics panel styling */
-        .metric-card {{
-            background: {bg_color} !important;
-            border: 1px solid {border_color} !important;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }}
-        .metric-card:hover {{
-            transform: translateY(-2px);
-            border-color: rgba(99, 102, 241, 0.4) !important;
-        }}
-        .metric-title {{
-            font-size: 0.9rem;
-            color: {text_title} !important;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }}
-        .metric-value {{
-            font-size: 1.8rem;
-            font-weight: 700;
-            {text_value_style}
-        }}
-        .metric-sub {{
-            font-size: 0.8rem;
-            color: {text_sub} !important;
-            margin-top: 5px;
-            font-weight: 600;
-        }}
-        
-        /* Subtitle styling */
-        .dashboard-subtitle {{
-            color: {text_title} !important;
-            margin-bottom: 25px;
-            font-size: 1.1rem;
-        }}
-        
-        /* Fix label visibility for all widgets */
-        label, p, span,
-        .stTextInput label, .stNumberInput label, 
-        .stSelectbox label, .stMultiselect label, .stSlider label,
-        .stRadio label, .stCheckbox label, .stFileUploader label,
-        [data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] p {{
-            color: {card_title_color} !important;
-        }}
-        
-        /* Radio button option text */
-        .stRadio div[role="radiogroup"] label span,
-        .stRadio div[role="radiogroup"] label p,
-        [data-testid="stRadio"] label span,
-        [data-testid="stRadio"] label p {{
-            color: {card_title_color} !important;
-        }}
-        
-        /* Checkbox text */
-        .stCheckbox label span, .stCheckbox label p,
-        [data-testid="stCheckbox"] label span,
-        [data-testid="stCheckbox"] label p {{
-            color: {card_title_color} !important;
-        }}
-        
-        /* Expander header text - comprehensive selectors */
-        .streamlit-expanderHeader, .streamlit-expanderHeader p,
-        details summary, details summary span, details summary p,
-        [data-testid="stExpander"] summary,
-        [data-testid="stExpander"] summary span,
-        [data-testid="stExpander"] summary p,
-        [data-testid="stExpander"] details summary,
-        [data-testid="stExpanderToggleDetails"] summary,
-        [data-testid="stExpanderToggleDetails"] summary span,
-        [data-testid="stExpanderToggleDetails"] summary p {{
-            color: {card_title_color} !important;
-        }}
-        
-        /* Info, warning, success message boxes text */
-        [data-testid="stAlert"] p {{
-            color: #1f2937 !important;
-        }}
-        
-        /* Caption text */
-        .stCaption, .stCaption p, [data-testid="stCaption"] p {{
-            color: {text_title} !important;
-        }}
-        
-        #MainMenu {{visibility: hidden;}}
-        footer {{visibility: hidden;}}
-    </style>
-    """, unsafe_allow_html=True)
+    # End of sidebar header variables
+    pass
+
+# Global CSS Inject (No indentation to prevent Markdown code block rendering)
+st.markdown(f"""<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+html, body, [data-testid="stSidebar"], .stApp {{
+    font-family: 'Outfit', 'Sarabun', sans-serif;
+}}
+
+body, .stApp {{
+    background-color: #f9fafb !important;
+    color: #1f2937 !important;
+}}
+
+h1, h2, h3, h4, h5, h6 {{
+    color: #1f2937 !important;
+}}
+
+section[data-testid="stSidebar"] {{
+    background-color: #f3f4f6 !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+}}
+
+/* Top Header Bar */
+header[data-testid="stHeader"] {{
+    background-color: #f9fafb !important;
+    background: #f9fafb !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}}
+div[data-testid="stDecoration"] {{
+    background: transparent !important;
+}}
+
+/* Sidebar Text Color overrides */
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3 {{
+    color: #1f2937 !important;
+}}
+section[data-testid="stSidebar"] i {{
+    color: #6366f1 !important;
+}}
+
+/* Light theme overrides for Streamlit BaseWeb components */
+div[data-baseweb="select"] {{
+    background-color: transparent !important;
+}}
+div[data-baseweb="select"] > div {{
+    background-color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    border-radius: 4px;
+}}
+div[data-baseweb="select"] div {{
+    background-color: transparent !important;
+    color: #1f2937 !important;
+}}
+div[data-baseweb="select"] input {{
+    color: #1f2937 !important;
+}}
+div[data-baseweb="select"] span {{
+    color: #1f2937 !important;
+}}
+
+/* Dropdown popups */
+div[role="listbox"], ul[role="listbox"], div[data-baseweb="menu"] {{
+    background-color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}}
+div[role="listbox"] div, ul[role="listbox"] li, div[data-baseweb="menu"] div {{
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+}}
+div[role="option"]:hover, li[role="option"]:hover, div[data-baseweb="menu"] div:hover {{
+    background-color: #f3f4f6 !important;
+    color: #1f2937 !important;
+}}
+
+/* Multiselect selected items (tags) */
+span[data-baseweb="tag"] {{
+    background-color: #e5e7eb !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}}
+span[data-baseweb="tag"] div {{
+    background-color: transparent !important;
+}}
+span[data-baseweb="tag"] span {{
+    color: #1f2937 !important;
+    background-color: transparent !important;
+}}
+
+/* Input fields (Text & Number Inputs) and Buttons */
+div[data-testid="stTextInput"] input, 
+div[data-testid="stNumberInput"] input,
+input[type="text"], 
+input[type="number"] {{
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}}
+
+div[data-testid="stNumberInput"] button {{
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}}
+div[data-testid="stNumberInput"] button:hover {{
+    background-color: #f3f4f6 !important;
+}}
+
+/* Slider */
+div[data-testid="stSlider"] * {{
+    color: #1f2937 !important;
+}}
+
+/* Tabs styling */
+button[data-baseweb="tab"] p {{
+    color: #4b5563 !important;
+}}
+button[data-baseweb="tab"][aria-selected="true"] {{
+    border-bottom-color: #6366f1 !important;
+}}
+button[data-baseweb="tab"][aria-selected="true"] p {{
+    color: #6366f1 !important;
+}}
+
+/* Metrics panel styling */
+.metric-card {{
+    background: rgba(243, 244, 246, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}}
+.metric-card:hover {{
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}}
+.metric-title {{
+    font-size: 0.9rem;
+    color: #4b5563 !important;
+    margin-bottom: 5px;
+    font-weight: 500;
+}}
+.metric-value {{
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4f46e5 0%, #0891b2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}}
+.metric-sub {{
+    font-size: 0.8rem;
+    color: #4b5563 !important;
+    margin-top: 5px;
+    font-weight: 600;
+}}
+
+/* Subtitle styling */
+.dashboard-subtitle {{
+    color: #4b5563 !important;
+    margin-bottom: 25px;
+    font-size: 1.1rem;
+}}
+
+/* Fix label visibility for all widgets */
+label, p, span,
+.stTextInput label, .stNumberInput label, 
+.stSelectbox label, .stMultiselect label, .stSlider label,
+.stRadio label, .stCheckbox label, .stFileUploader label,
+[data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] p {{
+    color: #1f2937 !important;
+}}
+
+/* Radio button option text */
+.stRadio div[role="radiogroup"] label span,
+.stRadio div[role="radiogroup"] label p,
+[data-testid="stRadio"] label span,
+[data-testid="stRadio"] label p {{
+    color: #1f2937 !important;
+}}
+
+/* Checkbox text */
+.stCheckbox label span, .stCheckbox label p,
+[data-testid="stCheckbox"] label span,
+[data-testid="stCheckbox"] label p {{
+    color: #1f2937 !important;
+}}
+
+/* Expander header text - comprehensive selectors */
+.streamlit-expanderHeader, .streamlit-expanderHeader p,
+details summary, details summary span, details summary p,
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] summary span,
+[data-testid="stExpander"] summary p,
+[data-testid="stExpander"] details summary,
+[data-testid="stExpanderToggleDetails"] summary,
+[data-testid="stExpanderToggleDetails"] summary span,
+[data-testid="stExpanderToggleDetails"] summary p {{
+    color: #1f2937 !important;
+    background-color: #f3f4f6 !important;
+}}
+
+/* Info, warning, success message boxes text */
+[data-testid="stAlert"] p {{
+    color: #1f2937 !important;
+}}
+
+/* Caption text */
+.stCaption, .stCaption p, [data-testid="stCaption"] p {{
+    color: #4b5563 !important;
+}}
+
+#MainMenu {{visibility: hidden;}}
+footer {{visibility: hidden;}}
+</style>""", unsafe_allow_html=True)
+
+with st.sidebar:
     st.markdown("---")
     
     st.markdown("### <i class='fa fa-filter'></i> ตัวกรองข้อมูลทรัพย์สิน", unsafe_allow_html=True)

@@ -339,32 +339,49 @@ with st.sidebar:
         }}
         
         /* Fix label visibility for all widgets */
-        label, .stTextInput label, .stNumberInput label, 
+        label, p, span,
+        .stTextInput label, .stNumberInput label, 
         .stSelectbox label, .stMultiselect label, .stSlider label,
-        .stRadio label, .stCheckbox label, .stFileUploader label {{
+        .stRadio label, .stCheckbox label, .stFileUploader label,
+        [data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] p {{
             color: {card_title_color} !important;
         }}
         
         /* Radio button option text */
         .stRadio div[role="radiogroup"] label span,
-        .stRadio div[role="radiogroup"] label p {{
+        .stRadio div[role="radiogroup"] label p,
+        [data-testid="stRadio"] label span,
+        [data-testid="stRadio"] label p {{
             color: {card_title_color} !important;
         }}
         
         /* Checkbox text */
-        .stCheckbox label span,
-        .stCheckbox label p {{
+        .stCheckbox label span, .stCheckbox label p,
+        [data-testid="stCheckbox"] label span,
+        [data-testid="stCheckbox"] label p {{
             color: {card_title_color} !important;
         }}
         
-        /* Expander header text */
+        /* Expander header text - comprehensive selectors */
         .streamlit-expanderHeader, .streamlit-expanderHeader p,
-        details summary span, details summary p {{
+        details summary, details summary span, details summary p,
+        [data-testid="stExpander"] summary,
+        [data-testid="stExpander"] summary span,
+        [data-testid="stExpander"] summary p,
+        [data-testid="stExpander"] details summary,
+        [data-testid="stExpanderToggleDetails"] summary,
+        [data-testid="stExpanderToggleDetails"] summary span,
+        [data-testid="stExpanderToggleDetails"] summary p {{
             color: {card_title_color} !important;
+        }}
+        
+        /* Info, warning, success message boxes text */
+        [data-testid="stAlert"] p {{
+            color: #1f2937 !important;
         }}
         
         /* Caption text */
-        .stCaption, .stCaption p {{
+        .stCaption, .stCaption p, [data-testid="stCaption"] p {{
             color: {text_title} !important;
         }}
         

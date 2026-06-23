@@ -119,175 +119,151 @@ def load_properties_data():
 # Load the properties data
 df_raw = load_properties_data()
 
-# Load theme choice from session state or default to dark theme (🌙)
-if "theme_select" not in st.session_state or st.session_state["theme_select"] not in ["☀️", "🌙"]:
-    st.session_state["theme_select"] = "🌙"
-
-theme_choice_icon = st.session_state["theme_select"]
-theme_choice = "ธีมมืด (Dark Theme)" if theme_choice_icon == "🌙" else "ธีมสว่าง (Light Theme)"
-
 # ----------------- SIDEBAR -----------------
 with st.sidebar:
     st.markdown('<h2 style="color: #6366f1;"><i class="fa fa-home"></i> BAM NPA Dashboard</h2>', unsafe_allow_html=True)
     st.markdown("---")
     
-    # Set Theme Variables
-    if theme_choice == "ธีมมืด (Dark Theme)":
-        bg_color = "rgba(17, 24, 39, 0.7)"
-        border_color = "rgba(255, 255, 255, 0.08)"
-        text_title = "#9ca3af"
-        text_value_style = "background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
-        text_sub = "#9ca3af"
-        card_bg = "#111827"
-        card_border = "rgba(255, 255, 255, 0.08)"
-        card_title_color = "#f3f4f6"
-        card_text_color = "#9ca3af"
-        mapbox_style = "carto-darkmatter"
-        plot_font_color = "#f3f4f6"
-        color_scale_prov = "Purples"
-        map_legend_bg = "rgba(10, 15, 26, 0.8)"
-        map_legend_border = "rgba(255, 255, 255, 0.08)"
-        map_legend_text = "#f3f4f6"
-        plotly_template = "plotly_dark"
-        body_style = """
-        body, .stApp {
-            background-color: #090d16 !important;
-            color: #f3f4f6 !important;
-        }
-        """
-    else:
-        bg_color = "rgba(243, 244, 246, 0.9)"
-        border_color = "rgba(0, 0, 0, 0.08)"
-        text_title = "#4b5563"
-        text_value_style = "background: linear-gradient(135deg, #4f46e5 0%, #0891b2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
-        text_sub = "#4b5563"
-        card_bg = "#ffffff"
-        card_border = "rgba(0, 0, 0, 0.08)"
-        card_title_color = "#1f2937"
-        card_text_color = "#4b5563"
-        mapbox_style = "open-street-map"
-        plot_font_color = "#1f2937"
-        color_scale_prov = "Blues"
-        map_legend_bg = "rgba(255, 255, 255, 0.9)"
-        map_legend_border = "rgba(0, 0, 0, 0.08)"
-        map_legend_text = "#1f2937"
-        plotly_template = "plotly_white"
-        body_style = """
-        body, .stApp {
-            background-color: #f9fafb !important;
-            color: #1f2937 !important;
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            color: #1f2937 !important;
-        }
-        
-        section[data-testid="stSidebar"] {
-            background-color: #f3f4f6 !important;
-            border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
-        }
-        
-        /* Top Header Bar */
-        header[data-testid="stHeader"] {
-            background-color: #f9fafb !important;
-            background: #f9fafb !important;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-        }
-        div[data-testid="stDecoration"] {
-            background: transparent !important;
-        }
-        
-        /* Sidebar Text Color overrides */
-        section[data-testid="stSidebar"] label,
-        section[data-testid="stSidebar"] p,
-        section[data-testid="stSidebar"] span,
-        section[data-testid="stSidebar"] h1,
-        section[data-testid="stSidebar"] h2,
-        section[data-testid="stSidebar"] h3 {
-            color: #1f2937 !important;
-        }
-        section[data-testid="stSidebar"] i {
-            color: #6366f1 !important;
-        }
-        
-        /* Light theme overrides for Streamlit BaseWeb components */
-        div[data-baseweb="select"] {
-            background-color: transparent !important;
-        }
-        div[data-baseweb="select"] > div {
-            background-color: #ffffff !important;
-            border: 1px solid rgba(0, 0, 0, 0.15) !important;
-            border-radius: 4px;
-        }
-        div[data-baseweb="select"] div {
-            background-color: transparent !important;
-            color: #1f2937 !important;
-        }
-        div[data-baseweb="select"] input {
-            color: #1f2937 !important;
-        }
-        div[data-baseweb="select"] span {
-            color: #1f2937 !important;
-        }
-        
-        /* Dropdown popups */
-        div[role="listbox"], ul[role="listbox"], div[data-baseweb="menu"] {
-            background-color: #ffffff !important;
-            border: 1px solid rgba(0, 0, 0, 0.12) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-        }
-        div[role="listbox"] div, ul[role="listbox"] li, div[data-baseweb="menu"] div {
-            background-color: #ffffff !important;
-            color: #1f2937 !important;
-        }
-        div[role="option"]:hover, li[role="option"]:hover, div[data-baseweb="menu"] div:hover {
-            background-color: #f3f4f6 !important;
-            color: #1f2937 !important;
-        }
-        
-        /* Multiselect selected items (tags) */
-        span[data-baseweb="tag"] {
-            background-color: #e5e7eb !important;
-            border: 1px solid rgba(0, 0, 0, 0.08) !important;
-        }
-        span[data-baseweb="tag"] div {
-            background-color: transparent !important;
-        }
-        span[data-baseweb="tag"] span {
-            color: #1f2937 !important;
-            background-color: transparent !important;
-        }
-        
-        /* Input fields */
-        div[data-testid="stTextInput"] input {
-            background-color: #ffffff !important;
-            color: #1f2937 !important;
-            border: 1px solid rgba(0, 0, 0, 0.15) !important;
-        }
-        
-        /* Slider */
-        div[data-testid="stSlider"] * {
-            color: #1f2937 !important;
-        }
-        
-        /* Tabs styling */
-        button[data-baseweb="tab"] p {
-            color: #4b5563 !important;
-        }
-        button[data-baseweb="tab"][aria-selected="true"] {
-            border-bottom-color: #6366f1 !important;
-        }
-        button[data-baseweb="tab"][aria-selected="true"] p {
-            color: #6366f1 !important;
-        }
-        
-        /* Invert Dataframe/DataEditor in Light Theme to make it look native light */
-        div[data-testid="stDataFrame"], div[data-testid="stDataEditor"] {
-            filter: invert(0.92) hue-rotate(180deg) !important;
-        }
-        """
-
-        
+    # Set Theme Variables (Forced Light Theme)
+    bg_color = "rgba(243, 244, 246, 0.9)"
+    border_color = "rgba(0, 0, 0, 0.08)"
+    text_title = "#4b5563"
+    text_value_style = "background: linear-gradient(135deg, #4f46e5 0%, #0891b2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
+    text_sub = "#4b5563"
+    card_bg = "#ffffff"
+    card_border = "rgba(0, 0, 0, 0.08)"
+    card_title_color = "#1f2937"
+    card_text_color = "#4b5563"
+    mapbox_style = "open-street-map"
+    plot_font_color = "#1f2937"
+    color_scale_prov = "Blues"
+    map_legend_bg = "rgba(255, 255, 255, 0.9)"
+    map_legend_border = "rgba(0, 0, 0, 0.08)"
+    map_legend_text = "#1f2937"
+    plotly_template = "plotly_white"
+    
+    body_style = """
+    body, .stApp {
+        background-color: #f9fafb !important;
+        color: #1f2937 !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        color: #1f2937 !important;
+    }
+    
+    section[data-testid="stSidebar"] {
+        background-color: #f3f4f6 !important;
+        border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    /* Top Header Bar */
+    header[data-testid="stHeader"] {
+        background-color: #f9fafb !important;
+        background: #f9fafb !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    }
+    div[data-testid="stDecoration"] {
+        background: transparent !important;
+    }
+    
+    /* Sidebar Text Color overrides */
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: #1f2937 !important;
+    }
+    section[data-testid="stSidebar"] i {
+        color: #6366f1 !important;
+    }
+    
+    /* Light theme overrides for Streamlit BaseWeb components */
+    div[data-baseweb="select"] {
+        background-color: transparent !important;
+    }
+    div[data-baseweb="select"] > div {
+        background-color: #ffffff !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        border-radius: 4px;
+    }
+    div[data-baseweb="select"] div {
+        background-color: transparent !important;
+        color: #1f2937 !important;
+    }
+    div[data-baseweb="select"] input {
+        color: #1f2937 !important;
+    }
+    div[data-baseweb="select"] span {
+        color: #1f2937 !important;
+    }
+    
+    /* Dropdown popups */
+    div[role="listbox"], ul[role="listbox"], div[data-baseweb="menu"] {
+        background-color: #ffffff !important;
+        border: 1px solid rgba(0, 0, 0, 0.12) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+    div[role="listbox"] div, ul[role="listbox"] li, div[data-baseweb="menu"] div {
+        background-color: #ffffff !important;
+        color: #1f2937 !important;
+    }
+    div[role="option"]:hover, li[role="option"]:hover, div[data-baseweb="menu"] div:hover {
+        background-color: #f3f4f6 !important;
+        color: #1f2937 !important;
+    }
+    
+    /* Multiselect selected items (tags) */
+    span[data-baseweb="tag"] {
+        background-color: #e5e7eb !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    }
+    span[data-baseweb="tag"] div {
+        background-color: transparent !important;
+    }
+    span[data-baseweb="tag"] span {
+        color: #1f2937 !important;
+        background-color: transparent !important;
+    }
+    
+    /* Input fields (Text & Number Inputs) and Buttons */
+    div[data-testid="stTextInput"] input, 
+    div[data-testid="stNumberInput"] input,
+    input[type="text"], 
+    input[type="number"] {
+        background-color: #ffffff !important;
+        color: #1f2937 !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    div[data-testid="stNumberInput"] button {
+        background-color: #ffffff !important;
+        color: #1f2937 !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    }
+    div[data-testid="stNumberInput"] button:hover {
+        background-color: #f3f4f6 !important;
+    }
+    
+    /* Slider */
+    div[data-testid="stSlider"] * {
+        color: #1f2937 !important;
+    }
+    
+    /* Tabs styling */
+    button[data-baseweb="tab"] p {
+        color: #4b5563 !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        border-bottom-color: #6366f1 !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] p {
+        color: #6366f1 !important;
+    }
+    """
+    
     st.markdown(f"""
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -306,7 +282,7 @@ with st.sidebar:
             border-radius: 12px;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             transition: transform 0.2s ease, border-color 0.2s ease;
         }}
         .metric-card:hover {{
@@ -434,37 +410,8 @@ with st.sidebar:
         st.warning("ไม่มีตัวกรองข้อมูลเนื่องจากยังไม่มีไฟล์ข้อมูล BAM NPA.xlsx")
 
 # ----------------- MAIN VIEW -----------------
-main_col, theme_col = st.columns([7, 1])
-
-with main_col:
-    st.markdown(f'<h1 style="margin-bottom: 0px; color: {card_title_color};">📊 BAM NPA Property Dashboard</h1>', unsafe_allow_html=True)
-    st.markdown(f'<p class="dashboard-subtitle" style="color: {text_title}; margin-top: 5px;">ระบบรายงานสถิติและแผนที่เชิงวิเคราะห์สำหรับทรัพย์สินรอการขาย (NPA) ของบริษัทบริหารสินทรัพย์ กรุงเทพพาณิชย์ จำกัด (มหาชน)</p>', unsafe_allow_html=True)
-    
-with theme_col:
-    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
-    # Render theme selector (use pills for broad Streamlit version compatibility)
-    try:
-        selected_theme_icon = st.segmented_control(
-            "เลือกธีม",
-            options=["☀️", "🌙"],
-            default=theme_choice_icon,
-            key="theme_select_widget",
-            label_visibility="collapsed"
-        )
-    except AttributeError:
-        selected_theme_icon = st.pills(
-            "เลือกธีม",
-            options=["☀️", "🌙"],
-            default=theme_choice_icon,
-            key="theme_select_widget",
-            label_visibility="collapsed"
-        )
-    # Update session state if changed, preventing deselection
-    if selected_theme_icon and selected_theme_icon != theme_choice_icon:
-        st.session_state["theme_select"] = selected_theme_icon
-        st.rerun()
-    elif selected_theme_icon is None:
-        st.session_state["theme_select"] = theme_choice_icon
+st.markdown(f'<h1 style="margin-bottom: 0px; color: {card_title_color};">📊 BAM NPA Property Dashboard</h1>', unsafe_allow_html=True)
+st.markdown(f'<p class="dashboard-subtitle" style="color: {text_title}; margin-top: 5px;">ระบบรายงานสถิติและแผนที่เชิงวิเคราะห์สำหรับทรัพย์สินรอการขาย (NPA) ของบริษัทบริหารสินทรัพย์ กรุงเทพพาณิชย์ จำกัด (มหาชน)</p>', unsafe_allow_html=True)
 
 # Check if data exists
 if df_raw is None or df_raw.empty:
@@ -472,8 +419,8 @@ if df_raw is None or df_raw.empty:
     <div style="background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 25px; text-align: center; margin-top: 20px;">
         <i class="fa-solid fa-triangle-exclamation" style="font-size: 3.5rem; color: #ef4444; margin-bottom: 15px;"></i>
         <h3 style="color: #ef4444; margin-bottom: 10px;">ไม่พบไฟล์ข้อมูล 'BAM NPA.xlsx'</h3>
-        <p style="color: #f3f4f6; font-size: 1.05rem;">ระบบต้องการไฟล์ Excel ข้อมูลจากการรันระบบ Scraper ก่อน</p>
-        <p style="color: #9ca3af; font-size: 0.95rem;">ท่านสามารถรันระบบ Scraper ได้ทันทีโดยใช้แผงควบคุม <b>"🤖 ดึงข้อมูลใหม่จากเว็บ BAM"</b> บนแถบเมนูด้านซ้าย</p>
+        <p style="color: #1f2937; font-size: 1.05rem;">ระบบต้องการไฟล์ Excel ข้อมูลจากการรันระบบ Scraper ก่อน</p>
+        <p style="color: #4b5563; font-size: 0.95rem;">ท่านสามารถรันระบบ Scraper ได้ทันทีโดยใช้แผงควบคุม <b>"🤖 ดึงข้อมูลใหม่จากเว็บ BAM"</b> บนแถบเมนูด้านซ้าย</p>
     </div>
     """, unsafe_allow_html=True)
     st.stop()
@@ -543,8 +490,8 @@ with kpi_col1:
     <div class="metric-card">
         <div class="metric-title"><i class="fa-solid fa-cloud-arrow-down" style="color: #6366f1;"></i> ความคืบหน้าเก็บข้อมูล</div>
         <div class="metric-value">{scraped_percentage:.1f}%</div>
-        <div class="metric-sub" style="color: #9ca3af;">ดึงแล้ว {total_scraped_local:,.0f} จาก {total_web_count:,.0f} ทรัพย์</div>
-        <div style="width: 100%; background-color: #1f2937; border-radius: 4px; height: 6px; margin-top: 10px; overflow: hidden;">
+        <div class="metric-sub">ดึงแล้ว {total_scraped_local:,.0f} จาก {total_web_count:,.0f} ทรัพย์</div>
+        <div style="width: 100%; background-color: #e5e7eb; border-radius: 4px; height: 6px; margin-top: 10px; overflow: hidden;">
             <div style="width: {min(100.0, scraped_percentage):.1f}%; background-color: #6366f1; height: 100%; border-radius: 4px;"></div>
         </div>
     </div>
@@ -555,7 +502,7 @@ with kpi_col2:
     <div class="metric-card">
         <div class="metric-title"><i class="fa fa-wallet" style="color: #06b6d4;"></i> มูลค่าทรัพย์สินรวม</div>
         <div class="metric-value">฿{total_value_str}</div>
-        <div class="metric-sub" style="color: #9ca3af;">หน่วย: ล้านบาท</div>
+        <div class="metric-sub">หน่วย: ล้านบาท</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -564,7 +511,7 @@ with kpi_col3:
     <div class="metric-card">
         <div class="metric-title"><i class="fa fa-tags" style="color: #10b981;"></i> ราคาเฉลี่ย</div>
         <div class="metric-value">฿{avg_price_str}</div>
-        <div class="metric-sub" style="color: #9ca3af;">หน่วย: ล้านบาท / ทรัพย์</div>
+        <div class="metric-sub">หน่วย: ล้านบาท / ทรัพย์</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -813,9 +760,9 @@ with tab3:
                 
                 # Check for empty/missing images
                 if not image_url or str(image_url).lower() == "nan" or str(image_url).lower() == "none":
-                    image_tag = f'<div style="height: 180px; background-color: #1f2937; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; color: #9ca3af;"><i class="fa fa-home" style="font-size: 3rem;"></i></div>'
+                    image_tag = f'<div style="height: 180px; background-color: #e5e7eb; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; color: #4b5563;"><i class="fa fa-home" style="font-size: 3rem;"></i></div>'
                 else:
-                    image_tag = f'<img src="{image_url}" style="height: 180px; width: 100%; object-fit: cover; border-radius: 8px 8px 0 0;" onerror="this.onerror=null; this.src=\'https://placehold.co/400x250/111827/ffffff?text=BAM+NPA\';"/>'
+                    image_tag = f'<img src="{image_url}" style="height: 180px; width: 100%; object-fit: cover; border-radius: 8px 8px 0 0;" onerror="this.onerror=null; this.src=\'https://placehold.co/400x250/e5e7eb/6366f1?text=BAM+NPA\';"/>'
                 
                 # Prices formatting
                 price_val = row.get("ราคา", 0)
@@ -831,7 +778,7 @@ with tab3:
                 discount_badge = ""
                 if discount_percentage > 0:
                     discount_badge = f'<span style="background-color: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 10px;">ลดพิเศษ {discount_percentage}%</span>'
-                    price_block = f'<div style="margin-top: 8px;"><span style="color: #10b981; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span><span style="text-decoration: line-through; color: #9ca3af; font-size: 0.85rem; margin-left: 8px;">{original_price_display_str}</span></div>'
+                    price_block = f'<div style="margin-top: 8px;"><span style="color: #10b981; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span><span style="text-decoration: line-through; color: #4b5563; font-size: 0.85rem; margin-left: 8px;">{original_price_display_str}</span></div>'
                 else:
                     price_block = f'<div style="margin-top: 8px;"><span style="color: #6366f1; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span></div>'
                 
@@ -862,12 +809,12 @@ with tab3:
                 
                 # Card HTML Content
                 card_html = (
-                    f'<div style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;">'
+                    f'<div style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column;">'
                     f'{image_tag}'
                     f'<div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">'
                     f'<div>'
                     f'<div>'
-                    f'<span style="background-color: #1f2937; color: #06b6d4; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">{row.get("ประเภททรัพย์", "")}</span>'
+                    f'<span style="background-color: #e0f7fa; color: #0891b2; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">{row.get("ประเภททรัพย์", "")}</span>'
                     f'<span style="color: {card_text_color}; font-size: 0.7rem; float: right; font-weight: 500;">รหัส: {row.get("รหัสทรัพย์", "")}</span>'
                     f'</div>'
                     f'<h4 style="margin: 10px 0 5px 0; font-size: 0.95rem; color: {card_title_color}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4; height: 2.8em;">{row.get("ชื่อประกาศ", "")}</h4>'
@@ -983,6 +930,35 @@ with tab4:
         if st.button("🗑️ ล้างข้อมูลทั้งหมด", type="secondary"):
             st.session_state["comparison_input_df"] = pd.DataFrame(columns=["ชื่อทรัพย์", "ประเภททรัพย์", "ละติจูด", "ลองจิจูด", "ราคา"])
             st.rerun()
+
+        # Show map of imported properties
+        st.markdown(f'<h5 style="color: {card_title_color}; margin-top: 15px;">🗺️ แผนที่พิกัดทรัพย์สินที่นำเข้า</h5>', unsafe_allow_html=True)
+        # Filter rows with coordinates
+        imported_map_data = input_df[input_df['ละติจูด'].notna() & input_df['ลองจิจูด'].notna()].copy()
+        imported_map_data['ละติจูด'] = pd.to_numeric(imported_map_data['ละติจูด'], errors='coerce')
+        imported_map_data['ลองจิจูด'] = pd.to_numeric(imported_map_data['ลองจิจูด'], errors='coerce')
+        imported_map_data = imported_map_data.dropna(subset=['ละติจูด', 'ลองจิจูด'])
+        
+        if not imported_map_data.empty:
+            fig_imported = px.scatter_mapbox(
+                imported_map_data,
+                lat="ละติจูด",
+                lon="ลองจิจูด",
+                hover_name="ชื่อทรัพย์",
+                hover_data={"ราคา": ":,.0f", "ประเภททรัพย์": True, "ละติจูด": False, "ลองจิจูด": False},
+                zoom=11,
+                height=350,
+                template=plotly_template
+            )
+            fig_imported.update_layout(
+                mapbox_style=mapbox_style,
+                margin={"r": 0, "t": 0, "l": 0, "b": 0},
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)"
+            )
+            st.plotly_chart(fig_imported, use_container_width=True, theme=None)
+        else:
+            st.warning("ไม่พบพิกัด ละติจูด / ลองจิจูด ที่ถูกต้องสำหรับแสดงบนแผนที่")
     else:
         st.info("ยังไม่มีข้อมูลทรัพย์สินที่นำเข้า กรุณาเพิ่มข้อมูลด้านบน")
 

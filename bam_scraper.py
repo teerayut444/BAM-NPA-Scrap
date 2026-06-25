@@ -243,6 +243,10 @@ def scrape_page(page_num: int) -> tuple[list[dict], int, int]:
             
         area_combined = " ".join(area_parts) if area_parts else ""
             
+        # Obtain current date for "วันที่ดึงข้อมูล"
+        import datetime
+        date_scraped = datetime.date.today().strftime("%d/%m/%Y")
+
         listing_data = {
             "ID": listing_id,
             "รหัสทรัพย์": clean_whitespace(prop_code),
@@ -257,19 +261,12 @@ def scrape_page(page_num: int) -> tuple[list[dict], int, int]:
             "ลองจิจูด": None,
             "ชื่อประกาศ": clean_whitespace(title),
             "ลิงก์": link,
-            "ราคาตั้งต้น": original_price,
-            "ทำเล/ที่ตั้ง": clean_whitespace(location),
             "พื้นที่ (ไร่-งาน-วา)": area_combined,
             "พื้นที่ใช้สอย (ตร.ม.)": building_area,
-            "พื้นที่ดิน (ไร่)": rai,
-            "พื้นที่ดิน (งาน)": ngan,
-            "พื้นที่ดิน (ตร.ว.)": sqWa,
+            "วันที่ดึงข้อมูล": date_scraped,
             "ห้องนอน": bedrooms,
             "ห้องน้ำ": bathrooms,
-            "ที่จอดรถ": parking,
-            "วันที่ลดราคาพิเศษถึง": clean_whitespace(valid_to_date),
-            "รูปภาพ": image_url,
-            "แคมเปญ": clean_whitespace(campaign_str)
+            "ที่จอดรถ": parking
         }
         page_listings.append(listing_data)
         
@@ -294,7 +291,7 @@ def save_data(existing_listings, new_listings):
         
     cols_order = [
         "ID", "รหัสทรัพย์", "ชื่อโครงการ", "ประเภททรัพย์", "ประเภทการขาย", "ราคา", "ตำบล", "อำเภอ", "จังหวัด", "ละติจูด", "ลองจิจูด", "ชื่อประกาศ", "ลิงก์",
-        "ราคาตั้งต้น", "ทำเล/ที่ตั้ง", "พื้นที่ (ไร่-งาน-วา)", "พื้นที่ใช้สอย (ตร.ม.)", "พื้นที่ดิน (ไร่)", "พื้นที่ดิน (งาน)", "พื้นที่ดิน (ตร.ว.)", "ห้องนอน", "ห้องน้ำ", "ที่จอดรถ", "วันที่ลดราคาพิเศษถึง", "รูปภาพ", "แคมเปญ"
+        "พื้นที่ (ไร่-งาน-วา)", "พื้นที่ใช้สอย (ตร.ม.)", "วันที่ดึงข้อมูล", "ห้องนอน", "ห้องน้ำ", "ที่จอดรถ"
     ]
     
     # Try to append using openpyxl to preserve Excel formatting and tables

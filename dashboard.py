@@ -108,7 +108,6 @@ def load_properties_data():
         
         # Clean prices
         df['ราคา'] = pd.to_numeric(df['ราคา'], errors='coerce')
-        df['ราคาตั้งต้น'] = pd.to_numeric(df['ราคาตั้งต้น'], errors='coerce')
         
         # Fill NaN values in essential text columns
         df['ชื่อประกาศ'] = df['ชื่อประกาศ'].fillna("ไม่มีชื่อประกาศ").astype(str)
@@ -119,15 +118,8 @@ def load_properties_data():
         df['อำเภอ'] = df['อำเภอ'].fillna("").astype(str)
         df['ชื่อโครงการ'] = df['ชื่อโครงการ'].fillna("").astype(str)
         df['ประเภทการขาย'] = df['ประเภทการขาย'].fillna("").astype(str)
-        df['ทำเล/ที่ตั้ง'] = df['ทำเล/ที่ตั้ง'].fillna("").astype(str)
         df['พื้นที่ (ไร่-งาน-วา)'] = df['พื้นที่ (ไร่-งาน-วา)'].fillna("").astype(str)
-        df['วันที่ลดราคาพิเศษถึง'] = df['วันที่ลดราคาพิเศษถึง'].fillna("").astype(str)
-        df['แคมเปญ'] = df['แคมเปญ'].fillna("").astype(str)
-        
-        # Calculate discount amount and discount percentage
-        df['ส่วนลด (บาท)'] = df['ราคาตั้งต้น'] - df['ราคา']
-        df['ส่วนลด (%)'] = (df['ส่วนลด (บาท)'] / df['ราคาตั้งต้น'] * 100).round(1)
-        df['ส่วนลด (%)'] = df['ส่วนลด (%)'].apply(lambda x: x if (pd.notnull(x) and x > 0 and x < 100) else 0)
+        df['วันที่ดึงข้อมูล'] = df['วันที่ดึงข้อมูล'].fillna("").astype(str)
         
         return df
     except Exception as e:
@@ -493,10 +485,6 @@ total_count = len(df_filtered)
 total_value = df_filtered['ราคา'].sum() / 1e6  # Convert to Million Baht
 avg_price = df_filtered['ราคา'].mean() / 1e6 if total_count > 0 else 0  # Convert to Million Baht
 
-# Average discount (only for items that actually have originalPrice > price)
-discounted_items = df_filtered[(df_filtered['ส่วนลด (%)'] > 0)]
-avg_discount = discounted_items['ส่วนลด (%)'].mean() if len(discounted_items) > 0 else 0
-
 # Calculate scrape percentage metrics
 total_scraped_local = len(df_raw) if df_raw is not None else 0
 total_web_count = get_web_total_count()
@@ -512,10 +500,9 @@ max_price_str = f"{max_price:,.0f}" if max_price > 0 else "0"
 # Format variables
 total_value_str = f"{total_value:,.2f} ล้าน" if total_value > 0 else "0.00"
 avg_price_str = f"{avg_price:,.2f} ล้าน" if avg_price > 0 else "0.00"
-avg_discount_str = f"{avg_discount:.1f}%" if avg_discount > 0 else "0.0%"
 
-# KPI Display Columns (6 boxes)
-kpi_col1, kpi_col2, kpi_col3, kpi_col4, kpi_col5, kpi_col6 = st.columns(6)
+# KPI Display Columns (5 boxes)
+kpi_col1, kpi_col2, kpi_col3, kpi_col4, kpi_col5 = st.columns(5)
 
 with kpi_col1:
     st.markdown(f"""
@@ -562,15 +549,6 @@ with kpi_col5:
         <div class="metric-title"><i class="fa fa-arrow-up" style="color: #f59e0b;"></i> ราคาสูงสุด (Max)</div>
         <div class="metric-value">฿{max_price_str}</div>
         <div class="metric-sub" style="color: #f59e0b;">บาท</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with kpi_col6:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-title"><i class="fa fa-percent" style="color: #ef4444;"></i> ส่วนลดเฉลี่ย</div>
-        <div class="metric-value">{avg_discount_str}</div>
-        <div class="metric-sub" style="color: #ef4444;">มีส่วนลด {len(discounted_items)} รายการ</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -716,31 +694,30 @@ with tab2:
             st.plotly_chart(fig_prov, use_container_width=True, theme=None)
             
         # CHART 4: Discount analysis histogram
+        # CHART 4: Top districts
         with col_chart4:
-            has_discount_data = df_filtered[df_filtered['ส่วนลด (%)'] > 0]
+            district_data = df_filtered['อำเภอ'].value_counts().head(10).reset_index()
+            district_data.columns = ['อำเภอ', 'จำนวนประกาศ']
+            district_data = district_data.sort_values(by='จำนวนประกาศ', ascending=True)
             
-            if has_discount_data.empty:
-                st.markdown(
-                    '<div style="height: 350px; display: flex; align-items: center; justify-content: center; background: rgba(17,24,39,0.4); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.08);"><p style="color:#9ca3af;">ไม่มีข้อมูลส่วนลดพิเศษในการกรองปัจจุบัน</p></div>',
-                    unsafe_allow_html=True
-                )
-            else:
-                fig_dist = px.histogram(
-                    has_discount_data,
-                    x='ส่วนลด (%)',
-                    nbins=10,
-                    title='การแจกแจงอัตราส่วนลดพิเศษ (%)',
-                    color_discrete_sequence=['#ef4444'],
-                    template=plotly_template
-                )
-                fig_dist.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)",
-                    plot_bgcolor="rgba(0,0,0,0)",
-                    font=dict(color=plot_font_color),
-                    title_font=dict(size=16, color=plot_font_color, family="Outfit"),
-                    bargap=0.05
-                )
-                st.plotly_chart(fig_dist, use_container_width=True, theme=None)
+            fig_dist = px.bar(
+                district_data,
+                x='จำนวนประกาศ',
+                y='อำเภอ',
+                orientation='h',
+                title='10 ลำดับอำเภอ/เขตที่มีรายการประกาศขายมากที่สุด',
+                color='จำนวนประกาศ',
+                color_continuous_scale="Purples",
+                template=plotly_template
+            )
+            fig_dist.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color=plot_font_color),
+                title_font=dict(size=16, color=plot_font_color, family="Outfit"),
+                coloraxis_showscale=False
+            )
+            st.plotly_chart(fig_dist, use_container_width=True, theme=None)
 
 # ----- TAB 3: PROPERTY LIST -----
 with tab3:
@@ -753,14 +730,13 @@ with tab3:
         st.dataframe(
             df_filtered[[
                 "รหัสทรัพย์", "ชื่อโครงการ", "ชื่อประกาศ", "ประเภททรัพย์", "ประเภทการขาย",
-                "ราคา", "ราคาตั้งต้น", "จังหวัด", "อำเภอ", "ตำบล", "ทำเล/ที่ตั้ง",
+                "ราคา", "จังหวัด", "อำเภอ", "ตำบล",
                 "พื้นที่ (ไร่-งาน-วา)", "พื้นที่ใช้สอย (ตร.ม.)", "ห้องนอน", "ห้องน้ำ", "ที่จอดรถ",
-                "วันที่ลดราคาพิเศษถึง", "แคมเปญ"
+                "วันที่ดึงข้อมูล"
             ]],
             use_container_width=True,
             column_config={
-                "ราคา": st.column_config.NumberColumn("ราคาขาย (บาท)", format="%d"),
-                "ราคาตั้งต้น": st.column_config.NumberColumn("ราคาตั้งต้น (บาท)", format="%d")
+                "ราคา": st.column_config.NumberColumn("ราคาขาย (บาท)", format="%d")
             }
         )
         
@@ -791,31 +767,13 @@ with tab3:
         for idx, (_, row) in enumerate(page_df.iterrows()):
             col_pos = idx % 3
             with card_cols[col_pos]:
-                image_url = row.get("รูปภาพ", "")
-                
-                # Check for empty/missing images
-                if not image_url or str(image_url).lower() == "nan" or str(image_url).lower() == "none":
-                    image_tag = f'<div style="height: 180px; background-color: #e5e7eb; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; color: #4b5563;"><i class="fa fa-home" style="font-size: 3rem;"></i></div>'
-                else:
-                    image_tag = f'<img src="{image_url}" style="height: 180px; width: 100%; object-fit: cover; border-radius: 8px 8px 0 0;" onerror="this.onerror=null; this.src=\'https://placehold.co/400x250/e5e7eb/6366f1?text=BAM+NPA\';"/>'
+                # Fallback home icon representation since images are removed
+                image_tag = f'<div style="height: 180px; background-color: #e5e7eb; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; color: #4b5563;"><i class="fa fa-home" style="font-size: 3rem;"></i></div>'
                 
                 # Prices formatting
                 price_val = row.get("ราคา", 0)
-                original_price_val = row.get("ราคาตั้งต้น", 0)
-                
                 price_display_str = f"{price_val:,.0f} บาท" if pd.notnull(price_val) and price_val > 0 else "ไม่ทราบราคา"
-                original_price_display_str = f"{original_price_val:,.0f} บาท" if pd.notnull(original_price_val) and original_price_val > 0 else ""
-                
-                discount_percentage = int(row.get("ส่วนลด (%)", 0))
-                
-                # Discount styling
-                price_block = ""
-                discount_badge = ""
-                if discount_percentage > 0:
-                    discount_badge = f'<span style="background-color: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 10px;">ลดพิเศษ {discount_percentage}%</span>'
-                    price_block = f'<div style="margin-top: 8px;"><span style="color: #10b981; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span><span style="text-decoration: line-through; color: #4b5563; font-size: 0.85rem; margin-left: 8px;">{original_price_display_str}</span></div>'
-                else:
-                    price_block = f'<div style="margin-top: 8px;"><span style="color: #6366f1; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span></div>'
+                price_block = f'<div style="margin-top: 8px;"><span style="color: #6366f1; font-weight: 700; font-size: 1.2rem;">฿{price_display_str}</span></div>'
                 
                 # Details string (land and building)
                 prop_details_list = []
@@ -827,31 +785,19 @@ with tab3:
                     
                 # Land size
                 land_desc = row.get("พื้นที่ (ไร่-งาน-วา)")
-                if not land_desc or str(land_desc).strip() == "" or str(land_desc).strip() == "0-0-0" or str(land_desc).strip() == "nan":
-                    land_rai = row.get("พื้นที่ดิน (ไร่)")
-                    land_ngan = row.get("พื้นที่ดิน (งาน)")
-                    land_wa = row.get("พื้นที่ดิน (ตร.ว.)")
-                    temp_desc = ""
-                    if pd.notnull(land_rai) and str(land_rai).strip() != "" and str(land_rai).strip() != "nan":
-                        temp_desc += f'{format_num_val(land_rai)} ไร่ '
-                    if pd.notnull(land_ngan) and str(land_ngan).strip() != "" and str(land_ngan).strip() != "nan":
-                        temp_desc += f'{format_num_val(land_ngan)} งาน '
-                    if pd.notnull(land_wa) and str(land_wa).strip() != "" and str(land_wa).strip() != "nan":
-                        temp_desc += f'{format_num_val(land_wa)} วา'
-                    land_desc = temp_desc.strip()
-                elif '-' in str(land_desc):
-                    # format old 1-2-3 to 1 ไร่ 2 งาน 3 วา
-                    parts = str(land_desc).split('-')
-                    if len(parts) == 3:
-                        r_val, n_val, w_val = parts
-                        temp_desc = ""
-                        if r_val != "0" and r_val != "0.0" and r_val != "": temp_desc += f"{format_num_val(r_val)} ไร่ "
-                        if n_val != "0" and n_val != "0.0" and n_val != "": temp_desc += f"{format_num_val(n_val)} งาน "
-                        if w_val != "0" and w_val != "0.0" and w_val != "": temp_desc += f"{format_num_val(w_val)} วา"
-                        land_desc = temp_desc.strip()
-                        
-                if land_desc and land_desc.strip() != "":
-                    prop_details_list.append(f'ที่ดิน: {land_desc.strip()}')
+                if land_desc and str(land_desc).strip() != "" and str(land_desc).strip() != "nan" and str(land_desc).strip() != "0-0-0":
+                    if '-' in str(land_desc):
+                        # format old 1-2-3 to 1 ไร่ 2 งาน 3 วา
+                        parts = str(land_desc).split('-')
+                        if len(parts) == 3:
+                            r_val, n_val, w_val = parts
+                            temp_desc = ""
+                            if r_val != "0" and r_val != "0.0" and r_val != "": temp_desc += f"{format_num_val(r_val)} ไร่ "
+                            if n_val != "0" and n_val != "0.0" and n_val != "": temp_desc += f"{format_num_val(n_val)} งาน "
+                            if w_val != "0" and w_val != "0.0" and w_val != "": temp_desc += f"{format_num_val(w_val)} วา"
+                            land_desc = temp_desc.strip()
+                    if land_desc and land_desc.strip() != "":
+                        prop_details_list.append(f'ที่ดิน: {land_desc.strip()}')
                     
                 details_line = " | ".join(prop_details_list)
                 
@@ -875,18 +821,16 @@ with tab3:
                 if pd.notnull(project_name) and str(project_name).strip() != "" and str(project_name).strip() != "nan":
                     project_block = f'<div style="color: #6366f1; font-weight: 600; font-size: 0.8rem; margin-top: 5px;"><i class="fa fa-building"></i> โครงการ: {project_name}</div>'
                 
-                # Campaigns
-                campaign_block = ""
-                campaign_val = row.get("แคมเปญ", "")
-                if pd.notnull(campaign_val) and str(campaign_val).strip() != "" and str(campaign_val).strip() != "nan":
-                    campaign_block = f'<div style="background-color: #fffbeb; color: #b45309; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; display: inline-block; margin-top: 5px;"><i class="fa fa-gift"></i> {campaign_val}</div>'
-                
                 # Sale Type
                 sale_type_badge = ""
                 sale_type = row.get("ประเภทการขาย", "")
                 if pd.notnull(sale_type) and str(sale_type).strip() != "" and str(sale_type).strip() != "nan":
                     sale_type_badge = f'<span style="background-color: #f3f4f6; color: #4b5563; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 5px;">{sale_type}</span>'
                 
+                # Scraped Date
+                scraped_date = row.get("วันที่ดึงข้อมูล", "")
+                scraped_block = f'<div style="color: #9ca3af; font-size: 0.7rem; margin-top: 8px;"><i class="fa fa-clock"></i> ดึงข้อมูลเมื่อ: {scraped_date}</div>' if scraped_date else ""
+
                 # Card HTML Content
                 card_html = (
                     f'<div style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column;">'
@@ -903,11 +847,10 @@ with tab3:
                     f'<p style="color: {card_text_color}; font-size: 0.78rem; margin-bottom: 6px;"><i class="fa fa-map-marker" style="margin-right: 5px; color: #6366f1;"></i>{row.get("จังหวัด", "")} &raquo; {row.get("อำเภอ", "")} &raquo; {row.get("ตำบล", "")}</p>'
                     f'<p style="color: {card_text_color}; font-size: 0.78rem; margin-bottom: 6px; font-weight: 500;">{details_line}</p>'
                     f'{room_block}'
-                    f'{campaign_block}'
+                    f'{scraped_block}'
                     f'</div>'
                     f'<div>'
                     f'{price_block}'
-                    f'<div style="margin-top: 4px;">{discount_badge}</div>'
                     f'</div>'
                     f'</div>'
                     f'</div>'

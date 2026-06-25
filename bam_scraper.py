@@ -213,30 +213,41 @@ def scrape_page(page_num: int) -> tuple[list[dict], int, int]:
         href = prop.get("href", "")
         link = "https://www.bam.co.th" + href if href else ""
         
+        # New columns
+        project_name = prop.get("projectName", "") or prop.get("project", "")
+        sale_type = prop.get("saleType", "") or prop.get("saleTypeName", "")
+        if rai == "" and ngan == "" and sqWa == "":
+            area_combined = ""
+        else:
+            area_combined = f"{rai or 0}-{ngan or 0}-{sqWa or 0}"
+            
         listing_data = {
             "ID": listing_id,
-            "ชื่อประกาศ": clean_whitespace(title),
             "รหัสทรัพย์": clean_whitespace(prop_code),
+            "ชื่อโครงการ": clean_whitespace(project_name),
             "ประเภททรัพย์": clean_whitespace(prop_type),
+            "ประเภทการขาย": clean_whitespace(sale_type),
             "ราคา": price,
-            "ราคาตั้งต้น": original_price,
-            "ทำเล/ที่ตั้ง": clean_whitespace(location),
             "ตำบล": clean_whitespace(district),
             "อำเภอ": clean_whitespace(district),
             "จังหวัด": clean_whitespace(province),
             "ละติจูด": None,
             "ลองจิจูด": None,
+            "ชื่อประกาศ": clean_whitespace(title),
+            "ลิงก์": link,
+            "ราคาตั้งต้น": original_price,
+            "ทำเล/ที่ตั้ง": clean_whitespace(location),
+            "พื้นที่ (ไร่-งาน-วา)": area_combined,
+            "พื้นที่ใช้สอย (ตร.ม.)": building_area,
             "พื้นที่ดิน (ไร่)": rai,
             "พื้นที่ดิน (งาน)": ngan,
             "พื้นที่ดิน (ตร.ว.)": sqWa,
-            "พื้นที่ใช้สอย (ตร.ม.)": building_area,
             "ห้องนอน": bedrooms,
             "ห้องน้ำ": bathrooms,
             "ที่จอดรถ": parking,
             "วันที่ลดราคาพิเศษถึง": clean_whitespace(valid_to_date),
             "รูปภาพ": image_url,
-            "แคมเปญ": clean_whitespace(campaign_str),
-            "ลิงก์": link
+            "แคมเปญ": clean_whitespace(campaign_str)
         }
         page_listings.append(listing_data)
         
@@ -260,10 +271,8 @@ def save_data(existing_listings, new_listings):
         return
         
     cols_order = [
-        "ID", "ชื่อประกาศ", "รหัสทรัพย์", "ประเภททรัพย์", "ราคา", "ราคาตั้งต้น",
-        "ทำเล/ที่ตั้ง", "ตำบล", "อำเภอ", "จังหวัด", "ละติจูด", "ลองจิจูด",
-        "พื้นที่ดิน (ไร่)", "พื้นที่ดิน (งาน)", "พื้นที่ดิน (ตร.ว.)", "พื้นที่ใช้สอย (ตร.ม.)",
-        "ห้องนอน", "ห้องน้ำ", "ที่จอดรถ", "วันที่ลดราคาพิเศษถึง", "รูปภาพ", "แคมเปญ", "ลิงก์"
+        "ID", "รหัสทรัพย์", "ชื่อโครงการ", "ประเภททรัพย์", "ประเภทการขาย", "ราคา", "ตำบล", "อำเภอ", "จังหวัด", "ละติจูด", "ลองจิจูด", "ชื่อประกาศ", "ลิงก์",
+        "ราคาตั้งต้น", "ทำเล/ที่ตั้ง", "พื้นที่ (ไร่-งาน-วา)", "พื้นที่ใช้สอย (ตร.ม.)", "พื้นที่ดิน (ไร่)", "พื้นที่ดิน (งาน)", "พื้นที่ดิน (ตร.ว.)", "ห้องนอน", "ห้องน้ำ", "ที่จอดรถ", "วันที่ลดราคาพิเศษถึง", "รูปภาพ", "แคมเปญ"
     ]
     
     # Try to append using openpyxl to preserve Excel formatting and tables

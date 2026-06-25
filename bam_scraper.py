@@ -92,7 +92,7 @@ def extract_pagination_info(html: str) -> tuple[int, int]:
         
     return total_pages, total_count
 
-def get_detail_data(detail_url: str) -> tuple[float | None, float | None]:
+def get_detail_data(detail_url: str) -> tuple[float | None, float | None, str, str]:
     max_retries = 2
     backoff = 6
     
@@ -113,7 +113,26 @@ def get_detail_data(detail_url: str) -> tuple[float | None, float | None]:
                     if match:
                         lat, lng = float(match.group(1)), float(match.group(2))
                         
-                return lat, lng
+                # Extract project name from script data (e.g. "project":"...")
+                project_name = ""
+                proj_match = re.search(r'\"project\"\s*:\s*\"([^\"]*)\"', html)
+                if proj_match:
+                    val = proj_match.group(1)
+                    val = val.replace('\\"', '"').replace('\\/', '/')
+                    try:
+                        project_name = val.encode().decode('unicode-escape')
+                    except Exception:
+                        project_name = val
+                    project_name = project_name.strip()
+                    if project_name == "โครงการ":
+                        project_name = ""
+                
+                # Determine sale type (default "ขายปกติ")
+                sale_type = "ขายปกติ"
+                if "auction" in detail_url.lower() or any(x in html for x in ["ขายทอดตลาด", "ทรัพย์ทอดตลาด", "ประมูล"]):
+                    sale_type = "ขายทอดตลาด"
+                        
+                return lat, lng, project_name, sale_type
                 
             elif r.status_code == 429:
                 print(f"  [429] โดนจำกัดคำขอชั่วคราวขณะดึงหน้ารายละเอียด รอ {backoff} วินาที... (พยายามครั้งที่ {attempt+1}/{max_retries})")
@@ -124,7 +143,7 @@ def get_detail_data(detail_url: str) -> tuple[float | None, float | None]:
         except Exception:
             time.sleep(1)
             
-    return None, None
+    return None, None, "", "ขายปกติ"
 
 def fetch_and_update_detail(idx: int, total: int, item: dict):
     link = item["ลิงก์"]
@@ -133,9 +152,13 @@ def fetch_and_update_detail(idx: int, total: int, item: dict):
     # Add a tiny randomized delay to space out thread start times
     time.sleep(random.uniform(0.3, 0.8))
     print(f"  -> [{idx+1}/{total}] ดึงข้อมูลจากหน้ารายละเอียด...")
-    lat, lng = get_detail_data(link)
+    lat, lng, project_name, sale_type = get_detail_data(link)
     item["ละติจูด"] = lat
     item["ลองจิจูด"] = lng
+    if project_name:
+        item["ชื่อโครงการ"] = project_name
+    if sale_type:
+        item["ประเภทการขาย"] = sale_type
 
 def scrape_page(page_num: int) -> tuple[list[dict], int, int]:
     url = URL_TEMPLATE.format(page_num=page_num)

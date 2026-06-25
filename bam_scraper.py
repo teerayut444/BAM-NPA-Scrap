@@ -216,10 +216,32 @@ def scrape_page(page_num: int) -> tuple[list[dict], int, int]:
         # New columns
         project_name = prop.get("projectName", "") or prop.get("project", "")
         sale_type = prop.get("saleType", "") or prop.get("saleTypeName", "")
-        if rai == "" and ngan == "" and sqWa == "":
-            area_combined = ""
-        else:
-            area_combined = f"{rai or 0}-{ngan or 0}-{sqWa or 0}"
+
+        # Format combined area (e.g. 1 ไร่ 1 งาน 1 วา)
+        def format_area_field(v):
+            if v is None or str(v).strip() == "" or str(v).lower() == "nan" or str(v).lower() == "undefined":
+                return ""
+            try:
+                fv = float(v)
+                if fv.is_integer():
+                    return str(int(fv))
+                return str(fv)
+            except ValueError:
+                return str(v).strip()
+
+        r_val = format_area_field(rai)
+        n_val = format_area_field(ngan)
+        w_val = format_area_field(sqWa)
+        
+        area_parts = []
+        if r_val and r_val != "0":
+            area_parts.append(f"{r_val} ไร่")
+        if n_val and n_val != "0":
+            area_parts.append(f"{n_val} งาน")
+        if w_val and w_val != "0":
+            area_parts.append(f"{w_val} วา")
+            
+        area_combined = " ".join(area_parts) if area_parts else ""
             
         listing_data = {
             "ID": listing_id,

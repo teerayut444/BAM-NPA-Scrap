@@ -837,17 +837,17 @@ with tab3:
                     if pd.notnull(land_ngan) and str(land_ngan).strip() != "" and str(land_ngan).strip() != "nan":
                         temp_desc += f'{format_num_val(land_ngan)} งาน '
                     if pd.notnull(land_wa) and str(land_wa).strip() != "" and str(land_wa).strip() != "nan":
-                        temp_desc += f'{format_num_val(land_wa)} ตร.ว.'
+                        temp_desc += f'{format_num_val(land_wa)} วา'
                     land_desc = temp_desc.strip()
-                else:
-                    # format 1-2-3 to 1 ไร่ 2 งาน 3 ตร.ว.
+                elif '-' in str(land_desc):
+                    # format old 1-2-3 to 1 ไร่ 2 งาน 3 วา
                     parts = str(land_desc).split('-')
                     if len(parts) == 3:
                         r_val, n_val, w_val = parts
                         temp_desc = ""
-                        if r_val != "0" and r_val != "0.0": temp_desc += f"{format_num_val(r_val)} ไร่ "
-                        if n_val != "0" and n_val != "0.0": temp_desc += f"{format_num_val(n_val)} งาน "
-                        if w_val != "0" and w_val != "0.0": temp_desc += f"{format_num_val(w_val)} ตร.ว."
+                        if r_val != "0" and r_val != "0.0" and r_val != "": temp_desc += f"{format_num_val(r_val)} ไร่ "
+                        if n_val != "0" and n_val != "0.0" and n_val != "": temp_desc += f"{format_num_val(n_val)} งาน "
+                        if w_val != "0" and w_val != "0.0" and w_val != "": temp_desc += f"{format_num_val(w_val)} วา"
                         land_desc = temp_desc.strip()
                         
                 if land_desc and land_desc.strip() != "":
